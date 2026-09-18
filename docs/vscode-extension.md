@@ -5,9 +5,10 @@ Code. It connects from the VS Code extension host to the Paseo daemon running on
 the same machine, WSL environment, SSH host, Codespace, or other remote host
 where VS Code is running workspace extensions.
 
-The package contributes a Paseo Activity Bar webview, the `Paseo: Toggle`
+The package contributes a Paseo Secondary Side Bar webview, the `Paseo: Toggle`
 sidebar command, the `Paseo: Open` editor-panel command, password management
-commands, and the `paseo.endpoint` setting. `Ctrl+Shift+I` toggles the sidebar.
+commands, and the `paseo.endpoint` setting. `Ctrl+Shift+I` toggles the secondary
+sidebar.
 
 ## Install
 

@@ -52,7 +52,7 @@
   },
   "contributes": {
     "viewsContainers": {
-      "activitybar": [
+      "secondarySidebar": [
         {
           "id": "paseo",
           "title": "Paseo",
