@@ -29,6 +29,7 @@ import {
   VSCODE_EDITOR_TARGETS,
   type EditorOpenTargetInput,
 } from "./editor-commands";
+import { parseWorkspaceFolderSyncInput, workspacePathsEqual } from "./workspace-folder-sync";
 
 export interface BridgeRouterInput {
   context: vscode.ExtensionContext;
@@ -36,6 +37,7 @@ export interface BridgeRouterInput {
   sendMessage: (message: HostToWebviewEnvelope) => PromiseLike<boolean>;
   fetch?: FetchLike;
   transport?: DaemonTransport;
+  togglePaseo: () => Promise<void>;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -83,12 +85,14 @@ export class BridgeRouter {
   private readonly sendMessage: (message: HostToWebviewEnvelope) => PromiseLike<boolean>;
   private readonly fetch: FetchLike | undefined;
   private readonly transport: DaemonTransport;
+  private readonly togglePaseo: () => Promise<void>;
 
   constructor(input: BridgeRouterInput) {
     this.context = input.context;
     this.resolvedEndpoint = input.resolvedEndpoint;
     this.sendMessage = input.sendMessage;
     this.fetch = input.fetch;
+    this.togglePaseo = input.togglePaseo;
     this.transport =
       input.transport ??
       new DaemonTransport({
@@ -126,6 +130,18 @@ export class BridgeRouter {
         return null;
       case "opener.openUrl":
         await this.openUrl(args);
+        return null;
+      case "vscode.showCommands":
+        await vscode.commands.executeCommand("workbench.action.showCommands");
+        return null;
+      case "vscode.syncWorkspaceFolder":
+        await this.syncWorkspaceFolder(args);
+        return null;
+      case "vscode.toggleSidebar":
+        await vscode.commands.executeCommand("workbench.action.toggleSidebarVisibility");
+        return null;
+      case "vscode.togglePaseo":
+        await this.togglePaseo();
         return null;
       case "read_file_base64":
         return await readManagedFileBase64(this.context.globalStorageUri.fsPath, args);
@@ -261,6 +277,40 @@ export class BridgeRouter {
       throw new Error(`Failed to open external URL in VS Code: ${getErrorMessage(error)}`, {
         cause: error,
       });
+    }
+  }
+
+  private async syncWorkspaceFolder(args: unknown): Promise<void> {
+    const { workspacePath } = parseWorkspaceFolderSyncInput(args);
+    const currentFolders = vscode.workspace.workspaceFolders ?? [];
+    if (
+      currentFolders.length === 1 &&
+      workspacePathsEqual(currentFolders[0].uri.fsPath, workspacePath)
+    ) {
+      return;
+    }
+
+    const currentUri = currentFolders[0]?.uri;
+    const targetUri =
+      currentUri && currentUri.scheme !== "file"
+        ? currentUri.with({ path: workspacePath, query: "", fragment: "" })
+        : vscode.Uri.file(workspacePath);
+
+    try {
+      const stat = await vscode.workspace.fs.stat(targetUri);
+      if ((stat.type & vscode.FileType.Directory) === 0) {
+        throw new Error("the selected path is not a directory");
+      }
+      const replaced = vscode.workspace.updateWorkspaceFolders(0, currentFolders.length, {
+        uri: targetUri,
+      });
+      if (!replaced) {
+        throw new Error("VS Code rejected the workspace-folder update");
+      }
+    } catch (error) {
+      const message = `Unable to switch VS Code to ${workspacePath}: ${getErrorMessage(error)}`;
+      await vscode.window.showErrorMessage(message);
+      throw new Error(message, { cause: error });
     }
   }
 }

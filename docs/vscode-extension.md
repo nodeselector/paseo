@@ -5,8 +5,10 @@ Code. It connects from the VS Code extension host to the Paseo daemon running on
 the same machine, WSL environment, SSH host, Codespace, or other remote host
 where VS Code is running workspace extensions.
 
-The package contributes a Paseo Activity Bar webview, the `Paseo: Open` panel
-command, password management commands, and the `paseo.endpoint` setting.
+The package contributes a Paseo Activity Bar webview, the `Paseo: Toggle`
+sidebar command, the `Paseo: Open` editor-panel command, password management
+commands, and the `paseo.endpoint` setting. `Cmd+Ctrl+I` selects or toggles Paseo
+on macOS.
 
 ## Install
 
@@ -64,6 +66,19 @@ The plaintext password stays in the Node extension host. It is used there to
 validate the password and authenticate the daemon WebSocket connection; it is not
 written into the webview HTML, runtime config, or postMessage payloads.
 
+## Workspace Synchronization
+
+Synchronization is bidirectional. On startup, Paseo selects the workspace that
+matches VS Code's current folder. When you select another Paseo workspace, the
+extension replaces VS Code's workspace folders with that workspace directory by
+using the live workspace-folder API. This updates Explorer, Git, tasks, and the
+default directory for new terminals without reloading the window. Existing
+terminal processes keep their current working directory.
+
+The selected directory must exist on the extension host. A missing directory or
+rejected workspace update produces a VS Code error and leaves the current folder
+unchanged.
+
 ## VS Code-Owned Surfaces
 
 The extension intentionally does not provide Paseo's duplicate workspace
@@ -97,9 +112,11 @@ programmatic paste is refused, the event stays untouched and the browser's
 native handling applies as before. The terminal is excluded — xterm owns its
 keystrokes.
 
-For the same propagation reason, VS Code workbench keybindings (for example
-Cmd+Shift+P) do not fire while focus is inside a Paseo text field. That is a
-known limitation; focus outside the input first.
+For the same propagation reason, VS Code workbench keybindings do not fire while
+focus is inside a Paseo text field. The preload handles `Cmd+Shift+P`, `Cmd+B`,
+and `Cmd+Ctrl+I` itself, so the command palette, primary sidebar toggle, and
+`Paseo: Toggle` work from the composer. For other workbench keybindings, focus
+outside the input first.
 
 ## Known Limitations
 
@@ -118,7 +135,9 @@ daemon content can reach the React UI, so the bridge avoids turning webview
 postMessage into an unbounded local primitive.
 
 The bridge pins daemon transport connections to the Node-resolved endpoint and
-ignores any endpoint supplied by the webview. `opener.openUrl` only accepts
+ignores any endpoint supplied by the webview. Workspace synchronization accepts
+only an absolute path that resolves to a directory on the extension host.
+`opener.openUrl` only accepts
 `http:`, `https:`, and `mailto:` URLs. Attachment copy commands accept regular
 source files, reject directories and non-files, and only write into
 VS Code-managed attachment storage. The `PASEO_VSCODE_TEST_PASSWORD` automation

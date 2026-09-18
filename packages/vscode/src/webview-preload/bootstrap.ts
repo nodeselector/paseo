@@ -1,6 +1,9 @@
 import type { HostToWebviewEnvelope, ResultEnvelope } from "../webview/messaging";
 import type { VscodeRuntimeConfig } from "../webview/html-rewrite";
+import { handleCommandPaletteShortcut } from "./command-palette-shortcut";
 import { isEditingShortcutTarget, resolveEditingCommand } from "./editing-shortcuts";
+import { handleSidebarShortcut } from "./sidebar-shortcut";
+import { handlePaseoToggleShortcut } from "./toggle-shortcut";
 
 type EventHandler = (payload: unknown) => void;
 type Unsubscribe = () => void;
@@ -147,6 +150,28 @@ try {
 const isMacLikePlatform =
   /Macintosh|Mac OS|iPhone|iPad|iPod/i.test(navigator.userAgent ?? "") ||
   /Mac|iPhone|iPad|iPod/i.test(navigator.platform ?? "");
+
+window.addEventListener(
+  "keydown",
+  (event) => {
+    const openedCommandPalette = handleCommandPaletteShortcut(event, isMacLikePlatform, () => {
+      void invoke("vscode.showCommands").catch(noop);
+    });
+    if (openedCommandPalette) {
+      return;
+    }
+    const toggledSidebar = handleSidebarShortcut(event, isMacLikePlatform, () => {
+      void invoke("vscode.toggleSidebar").catch(noop);
+    });
+    if (toggledSidebar) {
+      return;
+    }
+    handlePaseoToggleShortcut(event, isMacLikePlatform, () => {
+      void invoke("vscode.togglePaseo").catch(noop);
+    });
+  },
+  true,
+);
 
 window.addEventListener(
   "keydown",

@@ -1,8 +1,8 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { runTests } from "@vscode/test-electron";
+import { downloadAndUnzipVSCode, runTests } from "@vscode/test-electron";
 
 const packageRoot = fileURLToPath(new URL("../../", import.meta.url));
 const workspacePath = mkdtempSync(path.join(tmpdir(), "paseo-vscode-workspace-"));
@@ -16,7 +16,14 @@ for (const key of Object.keys(process.env)) {
 }
 
 try {
+  const downloadedExecutablePath = await downloadAndUnzipVSCode();
+  const macExecutablePath = downloadedExecutablePath.replace(/\/MacOS\/Electron$/u, "/MacOS/Code");
+  const vscodeExecutablePath = existsSync(downloadedExecutablePath)
+    ? downloadedExecutablePath
+    : macExecutablePath;
+
   await runTests({
+    vscodeExecutablePath,
     extensionDevelopmentPath: packageRoot,
     extensionTestsPath: path.join(packageRoot, "dist", "test", "vscode-smoke.js"),
     launchArgs: [

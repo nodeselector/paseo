@@ -14,9 +14,10 @@ It embeds the Paseo UI in a VS Code tab or side panel and connects to the Paseo 
 - **Drag files to mention them.** Drag a file from the Explorer or your OS file
   manager into the chat. **Hold Shift while dropping** to insert it as an
   `@`-mention.
-- **Auto-opens your workspace and host.** Automatically opens the Paseo workspace
-  that matches the current VS Code window - including the exact **git worktree**
-  when you open a worktree directory.
+- **Keeps Paseo and VS Code on the same workspace.** Opening VS Code selects the
+  matching Paseo workspace. Switching workspaces in Paseo replaces VS Code's
+  workspace folder in place, including the exact **git worktree**, without
+  reloading the window.
 - **Works with WSL and remote SSH.** When the VS Code window is connected to WSL
   or a remote SSH host, it connects the Paseo daemon running on the connected host.
 
@@ -33,7 +34,8 @@ It embeds the Paseo UI in a VS Code tab or side panel and connects to the Paseo 
 
 ## Commands
 
-- **Paseo: Open** - open the Paseo panel.
+- **Paseo: Toggle** (`Cmd+Ctrl+I` on macOS) - show or hide the Paseo sidebar from anywhere in VS Code, including while the chat composer is focused.
+- **Paseo: Open** - open Paseo in an editor panel.
 - **Paseo: Set Daemon Password** / **Paseo: Clear Daemon Password**.
 
 ## Development

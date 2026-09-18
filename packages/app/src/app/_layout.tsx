@@ -77,6 +77,8 @@ import { registerWorkspaceRouteNavigationRef } from "@/navigation/workspace-rout
 import { ThemedStack } from "@/navigation/themed-stack";
 import { shouldUseDesktopDaemon } from "@/desktop/daemon/desktop-daemon";
 import { AgentNavigationListener } from "@/desktop/agent-navigation";
+import { isVscodeRuntime } from "@/desktop/vscode/host";
+import { VscodeWorkspaceFolderSyncHost } from "@/desktop/vscode/workspace-folder-sync-host";
 import { LegacyAgentSkillsMigration } from "@/agent-skills/legacy-migration";
 import { legacyFavoriteProfileMigration } from "@/agent-profiles/migration";
 import { listenToDesktopEvent } from "@/desktop/electron/events";
@@ -941,6 +943,7 @@ function AppShell() {
       <HorizontalScrollProvider>
         <OpenProjectListener />
         <AgentNavigationListener />
+        {isVscodeRuntime() ? <VscodeWorkspaceFolderSyncHost /> : null}
         <AppWithSidebar>
           <WorkspaceRouteNavigationBridge />
           <RootStack />
