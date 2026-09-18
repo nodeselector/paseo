@@ -77,9 +77,7 @@ terminal processes keep their current working directory.
 
 The selected directory must exist on the extension host. A missing directory or
 rejected workspace update produces a VS Code error and leaves the current folder
-unchanged. When the folder is a Git repository, Paseo adds a left-aligned status
-item with the worktree directory and current branch. Selecting it opens VS Code's
-Source Control view.
+unchanged.
 
 ## VS Code-Owned Surfaces
 
