@@ -132,7 +132,7 @@ class PaseoWebviewViewProvider implements vscode.WebviewViewProvider {
 
   async toggle(): Promise<void> {
     if (this.isVisible()) {
-      await vscode.commands.executeCommand("workbench.action.closeAuxiliaryBar");
+      await vscode.commands.executeCommand("workbench.action.closeSidebar");
       return;
     }
     await vscode.commands.executeCommand("workbench.view.extension.paseo");

@@ -137,6 +137,9 @@ export class BridgeRouter {
       case "vscode.syncWorkspaceFolder":
         await this.syncWorkspaceFolder(args);
         return null;
+      case "vscode.toggleSidebar":
+        await vscode.commands.executeCommand("workbench.action.toggleSidebarVisibility");
+        return null;
       case "vscode.togglePaseo":
         await this.togglePaseo();
         return null;

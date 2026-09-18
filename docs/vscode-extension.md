@@ -5,10 +5,10 @@ Code. It connects from the VS Code extension host to the Paseo daemon running on
 the same machine, WSL environment, SSH host, Codespace, or other remote host
 where VS Code is running workspace extensions.
 
-The package contributes a Paseo Secondary Side Bar webview, the `Paseo: Toggle`
+The package contributes a Paseo Activity Bar webview, the `Paseo: Toggle`
 sidebar command, the `Paseo: Open` editor-panel command, password management
-commands, and the `paseo.endpoint` setting. `Cmd+Ctrl+I` toggles the secondary
-sidebar on macOS.
+commands, and the `paseo.endpoint` setting. `Cmd+Ctrl+I` selects or toggles Paseo
+on macOS.
 
 ## Install
 
@@ -113,9 +113,10 @@ native handling applies as before. The terminal is excluded — xterm owns its
 keystrokes.
 
 For the same propagation reason, VS Code workbench keybindings do not fire while
-focus is inside a Paseo text field. The preload handles `Cmd+Shift+P` and
-`Cmd+Ctrl+I` itself, so the command palette and `Paseo: Toggle` work from the
-composer. For other workbench keybindings, focus outside the input first.
+focus is inside a Paseo text field. The preload handles `Cmd+Shift+P`, `Cmd+B`,
+and `Cmd+Ctrl+I` itself, so the command palette, primary sidebar toggle, and
+`Paseo: Toggle` work from the composer. For other workbench keybindings, focus
+outside the input first.
 
 ## Known Limitations
 
