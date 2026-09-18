@@ -33,7 +33,8 @@ It embeds the Paseo UI in a VS Code tab or side panel and connects to the Paseo 
 
 ## Commands
 
-- **Paseo: Open** - open the Paseo panel.
+- **Paseo: Toggle** (`Ctrl+Shift+I`) - show or hide the Paseo sidebar from anywhere in VS Code, including while the chat composer is focused.
+- **Paseo: Open** - open Paseo in an editor panel.
 - **Paseo: Set Daemon Password** / **Paseo: Clear Daemon Password**.
 
 ## Development

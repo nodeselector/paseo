@@ -1,6 +1,7 @@
 import type { HostToWebviewEnvelope, ResultEnvelope } from "../webview/messaging";
 import type { VscodeRuntimeConfig } from "../webview/html-rewrite";
 import { isEditingShortcutTarget, resolveEditingCommand } from "./editing-shortcuts";
+import { handlePaseoToggleShortcut } from "./toggle-shortcut";
 
 type EventHandler = (payload: unknown) => void;
 type Unsubscribe = () => void;
@@ -147,6 +148,16 @@ try {
 const isMacLikePlatform =
   /Macintosh|Mac OS|iPhone|iPad|iPod/i.test(navigator.userAgent ?? "") ||
   /Mac|iPhone|iPad|iPod/i.test(navigator.platform ?? "");
+
+window.addEventListener(
+  "keydown",
+  (event) => {
+    handlePaseoToggleShortcut(event, () => {
+      void invoke("vscode.togglePaseo").catch(noop);
+    });
+  },
+  true,
+);
 
 window.addEventListener(
   "keydown",

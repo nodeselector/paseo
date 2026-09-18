@@ -75,12 +75,23 @@
         "title": "Paseo: Open"
       },
       {
+        "command": "paseo.toggle",
+        "title": "Paseo: Toggle"
+      },
+      {
         "command": "paseo.setPassword",
         "title": "Paseo: Set Daemon Password"
       },
       {
         "command": "paseo.clearPassword",
         "title": "Paseo: Clear Daemon Password"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "paseo.toggle",
+        "key": "ctrl+shift+i",
+        "mac": "ctrl+shift+i"
       }
     ],
     "configuration": {
@@ -98,6 +109,7 @@
     "onCommand:paseo.clearPassword",
     "onCommand:paseo.open",
     "onCommand:paseo.setPassword",
+    "onCommand:paseo.toggle",
     "onView:paseo.webview"
   ],
   "extensionKind": [

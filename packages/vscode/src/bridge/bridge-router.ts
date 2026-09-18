@@ -36,6 +36,7 @@ export interface BridgeRouterInput {
   sendMessage: (message: HostToWebviewEnvelope) => PromiseLike<boolean>;
   fetch?: FetchLike;
   transport?: DaemonTransport;
+  togglePaseo: () => Promise<void>;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -83,12 +84,14 @@ export class BridgeRouter {
   private readonly sendMessage: (message: HostToWebviewEnvelope) => PromiseLike<boolean>;
   private readonly fetch: FetchLike | undefined;
   private readonly transport: DaemonTransport;
+  private readonly togglePaseo: () => Promise<void>;
 
   constructor(input: BridgeRouterInput) {
     this.context = input.context;
     this.resolvedEndpoint = input.resolvedEndpoint;
     this.sendMessage = input.sendMessage;
     this.fetch = input.fetch;
+    this.togglePaseo = input.togglePaseo;
     this.transport =
       input.transport ??
       new DaemonTransport({
@@ -126,6 +129,9 @@ export class BridgeRouter {
         return null;
       case "opener.openUrl":
         await this.openUrl(args);
+        return null;
+      case "vscode.togglePaseo":
+        await this.togglePaseo();
         return null;
       case "read_file_base64":
         return await readManagedFileBase64(this.context.globalStorageUri.fsPath, args);

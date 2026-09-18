@@ -10,6 +10,7 @@ import type { VscodeRuntimeConfig } from "./webview/html-rewrite";
 interface PaseoExtensionApi {
   getActivePanelCountForTest: () => number;
   getLastWebviewHtmlForTest: () => string | null;
+  getPaseoViewVisibleForTest: () => boolean;
 }
 
 let lastWebviewHtml: string | null = null;
@@ -60,6 +61,7 @@ async function buildRuntimeConfig(
 async function renderWebview(
   webview: vscode.Webview,
   context: vscode.ExtensionContext,
+  togglePaseo: () => Promise<void>,
 ): Promise<vscode.Disposable> {
   webview.options = {
     enableScripts: true,
@@ -91,6 +93,7 @@ async function renderWebview(
     context,
     resolvedEndpoint,
     sendMessage: sendToWebview,
+    togglePaseo,
   });
   const messageDisposable = webview.onDidReceiveMessage((message) => {
     void dispatchWebviewMessage({
@@ -110,15 +113,36 @@ async function renderWebview(
 }
 
 class PaseoWebviewViewProvider implements vscode.WebviewViewProvider {
+  private view: vscode.WebviewView | null = null;
+
   constructor(private readonly context: vscode.ExtensionContext) {}
 
   async resolveWebviewView(webviewView: vscode.WebviewView): Promise<void> {
-    const disposable = await renderWebview(webviewView.webview, this.context);
-    webviewView.onDidDispose(() => disposable.dispose());
+    this.view = webviewView;
+    const disposable = await renderWebview(webviewView.webview, this.context, () => this.toggle());
+    webviewView.onDidDispose(() => {
+      this.view = null;
+      disposable.dispose();
+    });
+  }
+
+  isVisible(): boolean {
+    return this.view?.visible === true;
+  }
+
+  async toggle(): Promise<void> {
+    if (this.isVisible()) {
+      await vscode.commands.executeCommand("workbench.action.toggleSidebarVisibility");
+      return;
+    }
+    await vscode.commands.executeCommand("workbench.view.extension.paseo");
   }
 }
 
-async function openPaseoPanel(context: vscode.ExtensionContext): Promise<void> {
+async function openPaseoPanel(
+  context: vscode.ExtensionContext,
+  togglePaseo: () => Promise<void>,
+): Promise<void> {
   const panel = vscode.window.createWebviewPanel(
     "paseo.webviewPanel",
     "Paseo",
@@ -133,7 +157,7 @@ async function openPaseoPanel(context: vscode.ExtensionContext): Promise<void> {
   panel.onDidDispose(() => {
     activePanelCount -= 1;
   });
-  const disposable = await renderWebview(panel.webview, context);
+  const disposable = await renderWebview(panel.webview, context, togglePaseo);
   panel.onDidDispose(() => disposable.dispose());
 }
 
@@ -155,7 +179,10 @@ export function activate(context: vscode.ExtensionContext): PaseoExtensionApi {
     vscode.window.registerWebviewViewProvider("paseo.webview", provider, {
       webviewOptions: { retainContextWhenHidden: true },
     }),
-    vscode.commands.registerCommand("paseo.open", () => openPaseoPanel(context)),
+    vscode.commands.registerCommand("paseo.open", () =>
+      openPaseoPanel(context, () => provider.toggle()),
+    ),
+    vscode.commands.registerCommand("paseo.toggle", () => provider.toggle()),
     vscode.commands.registerCommand("paseo.setPassword", () => setDaemonPassword(context)),
     vscode.commands.registerCommand("paseo.clearPassword", () => clearDaemonPassword(context)),
   ];
@@ -164,6 +191,7 @@ export function activate(context: vscode.ExtensionContext): PaseoExtensionApi {
   return {
     getActivePanelCountForTest: () => activePanelCount,
     getLastWebviewHtmlForTest: () => lastWebviewHtml,
+    getPaseoViewVisibleForTest: () => provider.isVisible(),
   };
 }
 

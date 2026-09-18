@@ -196,6 +196,11 @@ The job uploads `packages/vscode/artifacts/vscode-e2e` on failure.
   `keyboard.type("Paseo: Open")`; do not use Playwright `fill()`, which clobbers
   the `>` command prefix and can leave Enter unable to activate the highlighted
   command.
+- Current macOS VS Code archives name the app executable `Contents/MacOS/Code`,
+  while `@vscode/test-electron` 2.5.2 still returns the retired
+  `Contents/MacOS/Electron` path. The smoke launcher resolves that renamed binary
+  before calling `runTests`; removing the fallback makes local macOS smoke fail
+  with `ENOENT` before extension activation.
 - On `app-frame-not-found`, start with
   `packages/vscode/artifacts/vscode-e2e/frame-report.json` and the screenshot.
   The report lists every frame URL plus whether `window.paseoVscode` and `#root`

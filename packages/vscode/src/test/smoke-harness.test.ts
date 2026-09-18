@@ -16,4 +16,15 @@ describe("VS Code smoke harness", () => {
     expect(source).toContain("await rm(scratchUserHome, { recursive: true, force: true })");
     expect(source).not.toContain("os.homedir()");
   });
+
+  it("uses the renamed macOS Code executable when the test library returns Electron", () => {
+    const source = readFileSync(
+      path.resolve(__dirname, "../../src/test/run-vscode-smoke.mjs"),
+      "utf8",
+    );
+
+    expect(source).toContain('replace(/\\/MacOS\\/Electron$/u, "/MacOS/Code")');
+    expect(source).toContain("existsSync(downloadedExecutablePath)");
+    expect(source).toContain("vscodeExecutablePath,");
+  });
 });

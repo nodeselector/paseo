@@ -5,6 +5,7 @@ import { DaemonTransport, type TransportEventPayload } from "../bridge/daemon-tr
 interface PaseoExtensionApi {
   getActivePanelCountForTest: () => number;
   getLastWebviewHtmlForTest: () => string | null;
+  getPaseoViewVisibleForTest: () => boolean;
 }
 
 interface RuntimeConfig {
@@ -140,6 +141,21 @@ async function runBridgeRoundTrip(input: { endpoint: string; password: string })
   }
 }
 
+async function waitFor(
+  predicate: () => boolean,
+  message: string,
+  timeoutMs = 5_000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (predicate()) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  assert.fail(message);
+}
+
 function findPaseoExtension(): vscode.Extension<PaseoExtensionApi> {
   const extension = vscode.extensions.all.find(
     (candidate) => candidate.packageJSON.name === "paseo-vscode",
@@ -151,8 +167,13 @@ function findPaseoExtension(): vscode.Extension<PaseoExtensionApi> {
 export async function run(): Promise<void> {
   const extension = findPaseoExtension();
   const api = await extension.activate();
-  await vscode.commands.executeCommand("paseo.open");
 
+  await vscode.commands.executeCommand("paseo.toggle");
+  await waitFor(api.getPaseoViewVisibleForTest, "paseo.toggle did not show the sidebar");
+  await vscode.commands.executeCommand("paseo.toggle");
+  await waitFor(() => !api.getPaseoViewVisibleForTest(), "paseo.toggle did not hide the sidebar");
+
+  await vscode.commands.executeCommand("paseo.open");
   assert.equal(api.getActivePanelCountForTest(), 1);
   const html = api.getLastWebviewHtmlForTest();
   assert.ok(html, "paseo.open creates webview HTML");
