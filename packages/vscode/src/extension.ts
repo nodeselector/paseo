@@ -6,11 +6,31 @@ import { discoverDaemonEndpoint, type ResolvedDaemonEndpoint } from "./daemon/di
 import { dispatchWebviewMessage } from "./webview/messaging";
 import { buildWebviewDocument } from "./webview/webview-host";
 import type { VscodeRuntimeConfig } from "./webview/html-rewrite";
+import { workspacePathsEqual } from "./bridge/workspace-folder-sync";
+import { buildWorkspaceGitStatus } from "./workspace-git-status";
 
 interface PaseoExtensionApi {
   getActivePanelCountForTest: () => number;
   getLastWebviewHtmlForTest: () => string | null;
   getPaseoViewVisibleForTest: () => boolean;
+}
+
+interface GitRepository {
+  rootUri: vscode.Uri;
+  state: {
+    HEAD: { name?: string } | undefined;
+    onDidChange: vscode.Event<void>;
+  };
+}
+
+interface GitApi {
+  repositories: GitRepository[];
+  onDidOpenRepository: vscode.Event<GitRepository>;
+  onDidCloseRepository: vscode.Event<GitRepository>;
+}
+
+interface GitExtension {
+  getAPI(version: 1): GitApi;
 }
 
 let lastWebviewHtml: string | null = null;
@@ -173,6 +193,67 @@ async function clearDaemonPassword(context: vscode.ExtensionContext): Promise<vo
   await vscode.window.showInformationMessage("Paseo daemon password cleared.");
 }
 
+async function registerWorkspaceGitStatus(context: vscode.ExtensionContext): Promise<void> {
+  const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+  item.name = "Paseo Workspace and Git Branch";
+  item.command = "workbench.view.scm";
+  context.subscriptions.push(item);
+
+  const gitExtension = vscode.extensions.getExtension<GitExtension>("vscode.git");
+  if (!gitExtension) {
+    return;
+  }
+  const git = (await gitExtension.activate()).getAPI(1);
+  let repositorySubscriptions: vscode.Disposable[] = [];
+
+  function refresh(): void {
+    const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!workspacePath) {
+      item.hide();
+      return;
+    }
+    const repository = git.repositories.find((candidate) =>
+      workspacePathsEqual(candidate.rootUri.fsPath, workspacePath),
+    );
+    if (!repository) {
+      item.hide();
+      return;
+    }
+    const status = buildWorkspaceGitStatus({
+      workspacePath,
+      branch: repository.state.HEAD?.name ?? null,
+    });
+    item.text = status.text;
+    item.tooltip = status.tooltip;
+    item.show();
+  }
+
+  function subscribeRepositories(): void {
+    for (const subscription of repositorySubscriptions) {
+      subscription.dispose();
+    }
+    repositorySubscriptions = git.repositories.map((repository) =>
+      repository.state.onDidChange(refresh),
+    );
+    refresh();
+  }
+
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(subscribeRepositories),
+    git.onDidOpenRepository(subscribeRepositories),
+    git.onDidCloseRepository(subscribeRepositories),
+    {
+      dispose() {
+        for (const subscription of repositorySubscriptions) {
+          subscription.dispose();
+        }
+        repositorySubscriptions = [];
+      },
+    },
+  );
+  subscribeRepositories();
+}
+
 export function activate(context: vscode.ExtensionContext): PaseoExtensionApi {
   const provider = new PaseoWebviewViewProvider(context);
   disposables = [
@@ -187,6 +268,9 @@ export function activate(context: vscode.ExtensionContext): PaseoExtensionApi {
     vscode.commands.registerCommand("paseo.clearPassword", () => clearDaemonPassword(context)),
   ];
   context.subscriptions.push(...disposables);
+  void registerWorkspaceGitStatus(context).catch((error) => {
+    void vscode.window.showWarningMessage(`Paseo could not show Git status: ${String(error)}`);
+  });
 
   return {
     getActivePanelCountForTest: () => activePanelCount,

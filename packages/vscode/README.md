@@ -17,7 +17,8 @@ It embeds the Paseo UI in a VS Code tab or side panel and connects to the Paseo 
 - **Keeps Paseo and VS Code on the same workspace.** Opening VS Code selects the
   matching Paseo workspace. Switching workspaces in Paseo replaces VS Code's
   workspace folder in place, including the exact **git worktree**, without
-  reloading the window.
+  reloading the window. A status-bar item shows the worktree and branch; select
+  it to open VS Code Source Control.
 - **Works with WSL and remote SSH.** When the VS Code window is connected to WSL
   or a remote SSH host, it connects the Paseo daemon running on the connected host.
 
