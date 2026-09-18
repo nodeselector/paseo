@@ -152,7 +152,7 @@ const isMacLikePlatform =
 window.addEventListener(
   "keydown",
   (event) => {
-    handlePaseoToggleShortcut(event, () => {
+    handlePaseoToggleShortcut(event, isMacLikePlatform, () => {
       void invoke("vscode.togglePaseo").catch(noop);
     });
   },

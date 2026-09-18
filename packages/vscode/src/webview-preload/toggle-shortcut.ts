@@ -14,23 +14,28 @@ export interface ToggleShortcutEvent extends ToggleShortcutEventLike {
   stopPropagation(): void;
 }
 
-export function isPaseoToggleShortcut(event: ToggleShortcutEventLike): boolean {
+export function isPaseoToggleShortcut(event: ToggleShortcutEventLike, isMac: boolean): boolean {
   if (event.defaultPrevented === true || event.isComposing === true || event.repeat === true) {
     return false;
   }
-  const hasExactModifiers =
-    event.ctrlKey === true &&
-    event.shiftKey === true &&
-    event.metaKey !== true &&
-    event.altKey !== true;
+  const hasExactModifiers = isMac
+    ? event.ctrlKey === true &&
+      event.metaKey === true &&
+      event.shiftKey !== true &&
+      event.altKey !== true
+    : event.ctrlKey === true &&
+      event.shiftKey === true &&
+      event.metaKey !== true &&
+      event.altKey !== true;
   return hasExactModifiers && event.key?.toLowerCase() === "i";
 }
 
 export function handlePaseoToggleShortcut(
   event: ToggleShortcutEvent,
+  isMac: boolean,
   togglePaseo: () => void,
 ): boolean {
-  if (!isPaseoToggleShortcut(event)) {
+  if (!isPaseoToggleShortcut(event, isMac)) {
     return false;
   }
   event.preventDefault();

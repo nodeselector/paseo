@@ -2,31 +2,38 @@ import { describe, expect, it } from "vitest";
 import { handlePaseoToggleShortcut, isPaseoToggleShortcut } from "./toggle-shortcut";
 
 describe("Paseo toggle shortcut", () => {
-  it("matches Ctrl+Shift+I", () => {
-    expect(isPaseoToggleShortcut({ key: "i", ctrlKey: true, shiftKey: true })).toBe(true);
-    expect(isPaseoToggleShortcut({ key: "I", ctrlKey: true, shiftKey: true })).toBe(true);
+  it("matches Cmd+Ctrl+I on macOS", () => {
+    expect(isPaseoToggleShortcut({ key: "i", ctrlKey: true, metaKey: true }, true)).toBe(true);
+    expect(isPaseoToggleShortcut({ key: "I", ctrlKey: true, metaKey: true }, true)).toBe(true);
+  });
+
+  it("matches Ctrl+Shift+I outside macOS", () => {
+    expect(isPaseoToggleShortcut({ key: "i", ctrlKey: true, shiftKey: true }, false)).toBe(true);
   });
 
   it("rejects other modifier combinations", () => {
-    expect(isPaseoToggleShortcut({ key: "i", ctrlKey: true })).toBe(false);
-    expect(isPaseoToggleShortcut({ key: "i", shiftKey: true })).toBe(false);
-    expect(isPaseoToggleShortcut({ key: "i", ctrlKey: true, shiftKey: true, metaKey: true })).toBe(
-      false,
-    );
-    expect(isPaseoToggleShortcut({ key: "i", ctrlKey: true, shiftKey: true, altKey: true })).toBe(
-      false,
-    );
+    expect(isPaseoToggleShortcut({ key: "i", ctrlKey: true }, true)).toBe(false);
+    expect(isPaseoToggleShortcut({ key: "i", metaKey: true }, true)).toBe(false);
+    expect(
+      isPaseoToggleShortcut({ key: "i", ctrlKey: true, metaKey: true, shiftKey: true }, true),
+    ).toBe(false);
+    expect(
+      isPaseoToggleShortcut({ key: "i", ctrlKey: true, metaKey: true, altKey: true }, true),
+    ).toBe(false);
   });
 
   it("rejects composition, repeats, and handled events", () => {
     expect(
-      isPaseoToggleShortcut({ key: "i", ctrlKey: true, shiftKey: true, isComposing: true }),
+      isPaseoToggleShortcut({ key: "i", ctrlKey: true, metaKey: true, isComposing: true }, true),
     ).toBe(false);
-    expect(isPaseoToggleShortcut({ key: "i", ctrlKey: true, shiftKey: true, repeat: true })).toBe(
-      false,
-    );
     expect(
-      isPaseoToggleShortcut({ key: "i", ctrlKey: true, shiftKey: true, defaultPrevented: true }),
+      isPaseoToggleShortcut({ key: "i", ctrlKey: true, metaKey: true, repeat: true }, true),
+    ).toBe(false);
+    expect(
+      isPaseoToggleShortcut(
+        { key: "i", ctrlKey: true, metaKey: true, defaultPrevented: true },
+        true,
+      ),
     ).toBe(false);
   });
 
@@ -38,7 +45,7 @@ describe("Paseo toggle shortcut", () => {
       {
         key: "i",
         ctrlKey: true,
-        shiftKey: true,
+        metaKey: true,
         preventDefault() {
           prevented = true;
         },
@@ -46,6 +53,7 @@ describe("Paseo toggle shortcut", () => {
           stopped = true;
         },
       },
+      true,
       () => {
         toggles += 1;
       },

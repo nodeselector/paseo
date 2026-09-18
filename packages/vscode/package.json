@@ -91,7 +91,7 @@
       {
         "command": "paseo.toggle",
         "key": "ctrl+shift+i",
-        "mac": "ctrl+shift+i"
+        "mac": "cmd+ctrl+i"
       }
     ],
     "configuration": {

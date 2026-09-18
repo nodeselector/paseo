@@ -7,8 +7,8 @@ where VS Code is running workspace extensions.
 
 The package contributes a Paseo Secondary Side Bar webview, the `Paseo: Toggle`
 sidebar command, the `Paseo: Open` editor-panel command, password management
-commands, and the `paseo.endpoint` setting. `Ctrl+Shift+I` toggles the secondary
-sidebar.
+commands, and the `paseo.endpoint` setting. `Cmd+Ctrl+I` toggles the secondary
+sidebar on macOS.
 
 ## Install
 
@@ -101,7 +101,7 @@ keystrokes.
 
 For the same propagation reason, VS Code workbench keybindings (for example
 Cmd+Shift+P) do not fire while focus is inside a Paseo text field. The preload
-handles `Ctrl+Shift+I` itself so `Paseo: Toggle` still works from the composer.
+handles `Cmd+Ctrl+I` itself so `Paseo: Toggle` still works from the composer.
 For other workbench keybindings, focus outside the input first.
 
 ## Known Limitations
