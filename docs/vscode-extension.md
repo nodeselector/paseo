@@ -99,10 +99,10 @@ programmatic paste is refused, the event stays untouched and the browser's
 native handling applies as before. The terminal is excluded — xterm owns its
 keystrokes.
 
-For the same propagation reason, VS Code workbench keybindings (for example
-Cmd+Shift+P) do not fire while focus is inside a Paseo text field. The preload
-handles `Cmd+Ctrl+I` itself so `Paseo: Toggle` still works from the composer.
-For other workbench keybindings, focus outside the input first.
+For the same propagation reason, VS Code workbench keybindings do not fire while
+focus is inside a Paseo text field. The preload handles `Cmd+Shift+P` and
+`Cmd+Ctrl+I` itself, so the command palette and `Paseo: Toggle` work from the
+composer. For other workbench keybindings, focus outside the input first.
 
 ## Known Limitations
 

@@ -130,6 +130,9 @@ export class BridgeRouter {
       case "opener.openUrl":
         await this.openUrl(args);
         return null;
+      case "vscode.showCommands":
+        await vscode.commands.executeCommand("workbench.action.showCommands");
+        return null;
       case "vscode.togglePaseo":
         await this.togglePaseo();
         return null;

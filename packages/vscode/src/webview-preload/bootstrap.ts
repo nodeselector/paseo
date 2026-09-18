@@ -1,5 +1,6 @@
 import type { HostToWebviewEnvelope, ResultEnvelope } from "../webview/messaging";
 import type { VscodeRuntimeConfig } from "../webview/html-rewrite";
+import { handleCommandPaletteShortcut } from "./command-palette-shortcut";
 import { isEditingShortcutTarget, resolveEditingCommand } from "./editing-shortcuts";
 import { handlePaseoToggleShortcut } from "./toggle-shortcut";
 
@@ -152,6 +153,12 @@ const isMacLikePlatform =
 window.addEventListener(
   "keydown",
   (event) => {
+    const openedCommandPalette = handleCommandPaletteShortcut(event, isMacLikePlatform, () => {
+      void invoke("vscode.showCommands").catch(noop);
+    });
+    if (openedCommandPalette) {
+      return;
+    }
     handlePaseoToggleShortcut(event, isMacLikePlatform, () => {
       void invoke("vscode.togglePaseo").catch(noop);
     });
